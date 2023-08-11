@@ -5,6 +5,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
 import { Repository } from 'typeorm';
 import { md5 } from 'src/utils/md5';
+import { ApiresultService } from 'libs/filters/apiresult.format';
 
 @Injectable()
 export class UserService {
@@ -12,6 +13,8 @@ export class UserService {
     @InjectRepository(User)
     private userRepository: Repository<User>,
   ) {}
+
+  Apiresult = new ApiresultService();
 
   // 注册
   async register(createUserDto: CreateUserDto) {
@@ -55,7 +58,14 @@ export class UserService {
   }
 
   async findAll() {
-    return await this.userRepository.find();
+    try {
+      const data = await this.userRepository.find();
+      return {
+        ...this.Apiresult.MESSAGE(200, '查询成功', data),
+      };
+    } catch (error) {
+      throw new HttpException(error, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
   }
 
   findOne(id: number) {
