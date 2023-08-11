@@ -13,11 +13,9 @@ export class UserService {
     private userRepository: Repository<User>,
   ) {}
 
+  // 注册
   async register(createUserDto: CreateUserDto) {
     const { username, password } = createUserDto;
-    if (!username || !password) {
-      throw new HttpException('账号密码不能为空', 200);
-    }
     const existUser = await this.userRepository.findOneBy({
       username,
     });
@@ -26,13 +24,34 @@ export class UserService {
     }
     // 对密码进行加密
     const newUser = new User();
-    newUser.username = createUserDto.username;
-    newUser.password = md5(createUserDto.password);
+    newUser.username = username;
+    newUser.password = md5(password);
     try {
-      return await this.userRepository.save(newUser);
+      await this.userRepository.save(newUser);
+      return await this.userRepository.findOne({ where: { username } });
     } catch (e) {
       throw new HttpException(e, HttpStatus.INTERNAL_SERVER_ERROR);
     }
+  }
+
+  // 登录
+  async login(createUserDto: CreateUserDto) {
+    const { username, password } = createUserDto;
+
+    const foundUser = await this.userRepository.findOne({
+      where: {
+        username,
+      },
+      select: ['username', 'password', 'id'],
+    });
+    if (!foundUser) {
+      throw new HttpException('用户名不存在', 200);
+    }
+
+    if (foundUser.password != md5(password)) {
+      throw new HttpException('密码错误，请重新登录', 200);
+    }
+    return foundUser;
   }
 
   async findAll() {
