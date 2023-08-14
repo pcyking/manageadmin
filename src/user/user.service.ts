@@ -17,6 +17,7 @@ export class UserService {
   Apiresult = new ApiresultService();
 
   // 注册
+
   async register(createUserDto: CreateUserDto) {
     const { username, password } = createUserDto;
     const existUser = await this.userRepository.findOneBy({

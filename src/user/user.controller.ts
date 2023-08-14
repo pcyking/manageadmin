@@ -8,12 +8,19 @@ import {
   Delete,
   ValidationPipe,
   Inject,
+  HttpStatus,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { JwtService } from '@nestjs/jwt';
 import { Public } from 'src/utils/public';
+import {
+  ApiBearerAuth,
+  ApiOperation,
+  ApiQuery,
+  ApiResponse,
+} from '@nestjs/swagger';
 
 @Controller('user')
 export class UserController {
@@ -22,6 +29,23 @@ export class UserController {
   @Inject(JwtService)
   private jwtService: JwtService;
 
+  @ApiOperation({ summary: '注册用户', description: '注册用户接口' })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: '注册成功',
+    type: String,
+  })
+  @ApiQuery({
+    name: 'password',
+    required: true,
+    description: '密码',
+  })
+  @ApiQuery({
+    name: 'username',
+    required: true,
+    description: '用户名',
+  })
+  @ApiBearerAuth() // swagger 使用请求token
   @Public()
   @Post('register')
   register(@Body(ValidationPipe) createUserDto: CreateUserDto) {
@@ -42,6 +66,8 @@ export class UserController {
     }
   }
 
+  @ApiOperation({ summary: '查询所有用户', description: '查询所有用户接口' })
+  @ApiBearerAuth() // swagger 使用请求token
   @Get()
   findAll() {
     return this.userService.findAll();
